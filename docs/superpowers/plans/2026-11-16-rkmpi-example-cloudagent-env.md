@@ -36,13 +36,7 @@
 
 ## 3. 提交
 
-1. `chore(cloud-env): 🐳 新增 Cloud Agent 的两份 Dockerfile`：`.cursor/Dockerfile`、`.cursor/Dockerfile.luckfox_pico`。
-2. `feat(cloud-env): ✨ 新增 environment.json 与 install、start 脚本`：`.cursor/environment.json`、`.cursor/install.sh`、`.cursor/start.sh`。
-3. `docs(agents): 📝 新增根 AGENTS.md 与 .cursor/AGENTS.md`：两份 `AGENTS.md`。
-4. `docs(superpowers): 📝 新增 spec 与 plan 的格式规则`：`docs/superpowers/AGENTS.md`。
-5. `docs(superpowers): 📝 新增 Cloud Agent 环境 spec 与 plan`：本 spec 与 plan。
-
-开发期间提交 5 最先推送供作者审阅（作者审阅后要求：提交正文改为「- 」开头的要点；plan 开头的 For agentic workers 沿用 lvgl 仓 PR #17 的写法并补出处）；实现提交叠在其后，Task 7 用 `git rebase -i --autosquash` 把提交 5 移到末尾并并入 fixup。作者审阅实现后另问两点（spec Q10、Q11）：删去根 `AGENTS.md` 中的工具链体积，提交 3、5 的说明随之更新（用 `amend!` 提交经 autosquash 改写，附录 A.7）；跨仓的两处在 lvgl 仓 PR #17 与本 PR 发评论。PR 改为 ready 后，Codex 安全审查对 `start.sh` 提出一条 P2，按已接受的取舍不修改并回复；作者随后要求 spec 开头与 lvgl 仓对齐（Task 7）。
+提交按改动对象拆分，以 `git log` 为准（spec §5）。开发期 spec 与 plan 最先推送供作者审阅，审阅与追问后的修订以 fixup、`amend!` 并入对应提交，Task 7 用 `git rebase -i --autosquash` 整理并把 spec 与 plan 的提交移到末尾（附录 A.7）；作者在审阅中提出的要求、跨仓评论与 Codex 审查见 Task 1、Task 7。
 
 ## 4. Tasks
 
@@ -50,25 +44,25 @@
 
 落地：本 spec 与 plan；草稿 PR [yuangezhizao/luckfox_pico_rkmpi_example#1](https://github.com/yuangezhizao/luckfox_pico_rkmpi_example/pull/1)。
 
-- [x] `check-headings.py` 0 处；提交 5 推送，开草稿 PR（`-R` 指定 fork、`--base dev`）。
+- [x] `check-headings.py` 0 处；spec 与 plan 推送，开草稿 PR（`-R` 指定 fork、`--base dev`）。
 - [x] 按作者审阅修改：PR 正文中的 PR 与提交哈希改为完整链接；提交正文改为要点；For agentic workers 补出处（先为 spec 开头新增的「流程」，合并前改为根 `AGENTS.md`「优先级」，Task 7）。
 
 ### Task 2：两份 Dockerfile ✅
 
-落地：`.cursor/Dockerfile`、`.cursor/Dockerfile.luckfox_pico`（提交 1）。
+落地：`.cursor/Dockerfile`、`.cursor/Dockerfile.luckfox_pico`。
 
 - [x] 以 lvgl 仓 `origin/dev` 的同名文件为底，用一次性脚本按行替换生成（不保存，§6 第 7 条），未改动的行与 lvgl 仓逐字相同；四组包行注释掉，组名后标「本仓暂不安装，原因见上方说明」。
 - [x] `docker build --check` 两份均无告警。
 
 ### Task 3：`environment.json`、`install.sh`、`start.sh` ✅
 
-落地：提交 2。`environment.json`、`install.sh` 的 blob 与 lvgl 仓相同（`47922a7`、`99af772`）。
+落地：`.cursor/environment.json`、`.cursor/install.sh`、`.cursor/start.sh`；`environment.json`、`install.sh` 的 blob 与 lvgl 仓相同（`47922a7`、`99af772`）。
 
 - [x] ShellCheck 0 条。
 
 ### Task 4：三份 `AGENTS.md` ✅
 
-落地：根 `AGENTS.md`、`.cursor/AGENTS.md`（提交 3），`docs/superpowers/AGENTS.md`（提交 4）。
+落地：根 `AGENTS.md`、`.cursor/AGENTS.md`、`docs/superpowers/AGENTS.md`。
 
 - [x] 文中的相对链接与本仓路径都存在；根文件 59 行、8,157 字节。
 - [x] 事实核对：命令行 `-DCMAKE_INSTALL_PREFIX` 无效（`cmake_install.cmake` 的目标仍是源码树内 `install/`）；`check-headings.py` 不带参数时检查当前目录下的 spec 与 plan。
@@ -97,10 +91,12 @@
 
 合并后，作者在 Cursor 中为本 fork 首次启动 Cloud Agent（合并前不要启动，spec §6）：
 
-- [ ] 确认 Dashboard 中新建的 saved environment 的 **environment.json location** 指向本仓 `.cursor/environment.json`。
-- [ ] V5：首个 Build `SUCCEEDED`，日志中 `install.sh` exit 0（grilling `curl` 成功、`openssh-server` 安装、host key 生成）。
-- [ ] V6：Agent 中 `whoami` 为 `ubuntu`；`start` 输出 `start: complete`；`tailscale status` 的主机名为 `cursor-agent-for-luckfox-pico-rkmpi-example-<bcId 前 8 位>`；`tailscale serve status` 有 5901 / 1054 / 1055；从另一台机器经 tailnet `ssh ubuntu@<主机名>` 成功、`root` 被拒；`stat -c '%U:%G %a' ~/.cursor ~/.cursor/skills/grilling/SKILL.md` 为 `ubuntu:ubuntu`（`install.sh` 依赖平台预建 `~/.cursor`，§6 第 2 条）；按根 `AGENTS.md` 的命令完成 glibc、uClibc 构建。
-- [ ] 结果记入下一个 PR 的 spec 或 plan；发现问题时在下一个 PR 修复。
+- [x] 确认 Dashboard 中新建的 saved environment 的 **environment.json location** 指向本仓 `.cursor/environment.json`。
+- [x] V5：首个 Build `SUCCEEDED`，日志中 `install.sh` exit 0（grilling `curl` 成功、`openssh-server` 安装、host key 生成）。
+- [x] V6：Agent 中 `whoami` 为 `ubuntu`；`start` 输出 `start: complete`；`tailscale status` 的主机名为 `cursor-agent-for-luckfox-pico-rkmpi-example-<bcId 前 8 位>`；`tailscale serve status` 有 5901 / 1054 / 1055；从另一台机器经 tailnet `ssh ubuntu@<主机名>` 成功、`root` 被拒；`stat -c '%U:%G %a' ~/.cursor ~/.cursor/skills/grilling/SKILL.md` 为 `ubuntu:ubuntu`（`install.sh` 依赖平台预建 `~/.cursor`，§6 第 2 条）；按根 `AGENTS.md` 的命令完成 glibc、uClibc 构建。
+- [x] 结果记入下一个 PR 的 spec 或 plan；发现问题时在下一个 PR 修复。
+
+以上各项在 [yuangezhizao/luckfox_pico_rkmpi_example#2](https://github.com/yuangezhizao/luckfox_pico_rkmpi_example/pull/2) 的 Cloud Agent 中核对，结果见 spec [`2026-11-17-rkmpi-example-github-actions-ci-design.md`](../specs/2026-11-17-rkmpi-example-github-actions-ci-design.md) §2.5，未发现问题。V6 中 `start` 的输出未进入平台日志，以 tailscaled、Serve 与 sshd 均在运行代替；tailnet SSH 由作者从本地 Mac mini 执行，`ubuntu` 登录成功，`root` 被拒（`Permission denied (publickey)`，sshd 的生效配置为 `permitrootlogin no`）。
 
 ## 5. 验证证据
 

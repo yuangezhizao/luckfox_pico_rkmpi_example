@@ -213,12 +213,7 @@ V5（草稿 Environment Build）、V6（冷启动 Agent、tailnet SSH）由作�
 ## 5. 提交与 PR
 
 - 分支 `pi/cloudagent-env`，PR 指向 fork 的 `dev`，开发期为草稿，合并前准备完成后改为 ready；先推送 spec、plan。
-- 提交：
-  1. `chore(cloud-env): 🐳 新增 Cloud Agent 的两份 Dockerfile`：`.cursor/Dockerfile`、`.cursor/Dockerfile.luckfox_pico`。
-  2. `feat(cloud-env): ✨ 新增 environment.json 与 install、start 脚本`：grilling、Tailscale、OpenSSH。
-  3. `docs(agents): 📝 新增根 AGENTS.md 与 .cursor/AGENTS.md`。
-  4. `docs(superpowers): 📝 新增 spec 与 plan 的格式规则`：`docs/superpowers/AGENTS.md`。
-  5. `docs(superpowers): 📝 新增 Cloud Agent 环境 spec 与 plan`：最后一个提交；开发期最先推送，最终用 rebase 移到末尾。
+- 提交按改动对象拆分（Dockerfile、JSON 与脚本、`AGENTS.md`、spec 与 plan 的格式规则），具体以 `git log` 为准；spec 与 plan 放在最后一个提交，开发期最先推送，最终用 rebase 移到末尾。
 - 合并前精简 plan（已完成），只保留未入库的内容：验证证据、偏离、V5/V6 步骤，以及附录 A 中可供以后参考的命令与脚本（包的复核、现状实测与 qemu 加载冒烟、提交整理）。
 
 ## 6. 风险
