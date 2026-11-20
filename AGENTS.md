@@ -11,7 +11,7 @@
 
 ## 项目与构建
 
-- Luckfox Pico 系列（RV1103 / RV1106）的 RKMPI 例程集：`example/` 下 5 个 RTSP 推流 / RKNN 推理例程，C++ + OpenCV-Mobile + Rockchip MPI，CMake 构建；依赖按 libc 预编译于 `lib/{glibc,uclibc}`，不需要系统库。本仓是 [`LuckfoxTECH/luckfox_pico_rkmpi_example`](https://github.com/LuckfoxTECH/luckfox_pico_rkmpi_example) 的 fork，默认分支 `dev`。
+- Luckfox Pico 系列（RV1103 / RV1106）的 RKMPI 例程集：`example/` 下 5 个 RTSP 推流 / RKNN 推理例程，C++ + OpenCV-Mobile + Rockchip MPI，CMake 构建；依赖按 libc 预编译于 `lib/{glibc,uclibc}`，不需要系统库。本仓是 `LuckfoxTECH/luckfox_pico_rkmpi_example` 的 fork，默认分支 `dev`。
 - 只能交叉编译，产物是 32 位 ARM。`cmake` 必须传 `-DLIBC_TYPE=glibc|uclibc`、`-DEXAMPLE_DIR=example/<例程>`、`-DEXAMPLE_NAME=<例程>`；对应的 `GLIBC_COMPILER` 或 `LUCKFOX_SDK_PATH` 未设置时 `CMakeLists.txt` 打印 WARNING 后 `return()`，不产生任何构建目标。产物的 libc 要与板上固件一致；`luckfox_pico_rtsp_yolov5` 只支持 RV1106（README 的平台支持表）。
 - **`install/` 已入库**：`CMakeLists.txt` 把安装目录写死为源码树内的 `install/<libc>/<例程>_demo/`（命令行 `-DCMAKE_INSTALL_PREFIX` 无效），`make install` 与 `build.sh` 都会改写已跟踪的二进制。验证构建用仓库外的构建目录与 `make`，需要部署目录时用 `make install DESTDIR=/tmp/stage`（写到 `/tmp/stage/<仓库绝对路径>/install/…`）；`install/` 只在作者要求更新发布产物时改写，误改用 `git restore install/` 还原。
   - glibc：`export GLIBC_COMPILER=/usr/bin/arm-linux-gnueabihf-` 后 `cmake -S . -B /tmp/build-glibc-<例程> -DLIBC_TYPE=glibc -DEXAMPLE_DIR=example/<例程> -DEXAMPLE_NAME=<例程> && make -C /tmp/build-glibc-<例程> -j`。工具链由 `.cursor/Dockerfile` 安装，其他环境 `sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf`。
@@ -22,9 +22,9 @@
 
 ## 测试与检查
 
-- 本仓暂无测试与 CI，后续计划见 spec [`2026-11-16-rkmpi-example-cloudagent-env-design.md`](docs/superpowers/specs/2026-11-16-rkmpi-example-cloudagent-env-design.md) §7。
-- 新增或修改 shell 脚本先在本地跑 `shellcheck -x -P SCRIPTDIR <脚本>`，要求 0 条（含 style 级）。
-- 按改动范围选检查：只改文档按 [`docs/superpowers/AGENTS.md`](docs/superpowers/AGENTS.md)「检查」一条检查 spec 与 plan；改 shell 脚本跑 ShellCheck；改 `example/` 至少交叉编译改动的例程，改 `CMakeLists.txt`、`lib/`、`include/` 交叉编译两种 libc 的全部 5 个例程；改 `.cursor/` 下的 Dockerfile 见 [`.cursor/AGENTS.md`](.cursor/AGENTS.md)。plan 另有要求时以 plan 为准。
+- 本仓暂无测试。新增或修改 shell 脚本先在本地跑 `shellcheck -x -P SCRIPTDIR <脚本>`，CI 要求 0 条（含 style 级）；改了 spec 或 plan 跑 `python3 tests/tools/docs/check-headings.py`，有问题时 CI 失败。
+- 按改动范围选检查：只改文档跑 `check-headings.py`；改 `example/` 至少交叉编译改动的例程，改 `CMakeLists.txt`、`lib/`、`include/` 交叉编译两种 libc 的全部 5 个例程。plan 另有要求时以 plan 为准。
+- CI 只在指向 `dev` 的 PR 每次推送、`dev` 上不只改 `.md` 的推送时运行，没开 PR 的分支推送不触发；同一 PR 的新推送会取消正在运行的 CI，只改文档的修订尽量攒到一起推送。修改 `.cursor/Dockerfile` 的 PR 在合并前 `build-image` 必然失败、容器 job 被跳过。
 
 ## 提交约定
 
@@ -42,12 +42,13 @@
 |---|---|
 | 改 Cloud Agent 环境：`.cursor/` 下的 Dockerfile、`install.sh`、`start.sh`、`environment.json` | [`.cursor/AGENTS.md`](.cursor/AGENTS.md) |
 | 写或改 `docs/superpowers/` 下的 spec、plan | [`docs/superpowers/AGENTS.md`](docs/superpowers/AGENTS.md) |
+| 改 workflow、排查 CI 失败 | [`.github/AGENTS.md`](.github/AGENTS.md) |
 | 了解例程的用途、板端部署与运行 | [`README_CN.md`](README_CN.md) |
 | 新增给 agent 的约定 | 本文件只写几乎每个任务都用得到、读代码推不出来的内容，其余写进对应目录的 `AGENTS.md`（[放置原则](https://github.com/yuangezhizao/luckfox_pico_lvgl_example/blob/dev/docs/superpowers/specs/2026-11-01-lvgl-example-agents-md-slim-design.md) §3.1）；本文件不超过 8 KiB |
 
 ## Cursor Cloud specific instructions
 
-只适用于 Cursor Cloud Agent 的 VM；环境配置见 [`.cursor/AGENTS.md`](.cursor/AGENTS.md)。
+只适用于 Cursor Cloud Agent 的 VM。
 
 - **身份**：提交身份为仓库配置的 `Cursor Agent <cursoragent@cursor.com>`，带 SSH 签名。环境会注入 `GIT_AUTHOR_*`、`GIT_COMMITTER_*`，提交、rebase 前要加 `env -u GIT_AUTHOR_NAME -u GIT_AUTHOR_EMAIL -u GIT_COMMITTER_NAME -u GIT_COMMITTER_EMAIL`。
 - **`Co-authored-by` 尾注**：`.git/config` 的 `core.hooksPath` 指向 `~/.cursor/agent-hooks/<id>/`，其中的钩子由 Cursor 在每次 Agent Run 启动时生成，`commit-msg` 与 `prepare-commit-msg` 会把发起本次 Run 的 Cursor 账户追加为 `Co-authored-by`（`prepare-commit-msg` 在 `--no-verify` 时也运行）。本仓允许带该尾注，但地址只能是 `远哥制造 <yuangezhizao@users.noreply.github.com>`，不能写进工作邮箱。
@@ -55,5 +56,5 @@
   - 内容提交照常经过钩子，`pre-commit` 会做密钥扫描，不要用 `--no-verify`；推送前用 `git log --format=%B origin/dev..HEAD | grep -i co-authored-by` 确认没有其他地址。
   - `GIT_EDITOR` 由 shell 解释，参数中有 `(` 时要加引号。
 - **保留作者时间**：rebase（含 fixup、reword）和 `--amend` 都要保留 author time，committer time 可以变化。不要用 `--reset-author`、`--ignore-date`、`--date`，也不用 `--committer-date-is-author-date`。
-- **PR 与 GitHub 账户**：推送可以使用 Cloud Agent 自带的 `cursor` 账户凭据；创建、更新 PR 用 Cloud Agent 自带的 PR 管理工具。在本环境用 `gh`（`cursor` 账户）创建 PR、改 PR 正文、发评论会返回 HTTP 403 `Resource not accessible by integration`，需要 `gh` 写操作时请作者 `gh auth login` 登录本人账户；环境刷新令牌时会改写 `~/.config/gh/hosts.yml`，登录随时可能失效。本仓是 fork，`gh pr create` 要加 `-R yuangezhizao/luckfox_pico_rkmpi_example --base dev`。
+- **PR 与 GitHub 账户**：推送可以使用 Cloud Agent 自带的 `cursor` 账户凭据，创建、更新 PR 用其自带的 PR 管理工具。在本环境用 `gh`（`cursor` 账户）创建 PR、改 PR 正文、发评论会返回 HTTP 403 `Resource not accessible by integration`，需要 `gh` 写操作时请作者 `gh auth login` 登录本人账户；环境刷新令牌时会改写 `~/.config/gh/hosts.yml`，登录随时可能失效。本仓是 fork，`gh pr create` 要加 `-R yuangezhizao/luckfox_pico_rkmpi_example --base dev`。
 - **打码**：`git remote -v`、push 报错可能显示带令牌的地址，输出前要先打码。
